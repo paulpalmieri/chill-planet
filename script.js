@@ -15,9 +15,10 @@ const buildings = [
 
 
 
+UPDATE_RATE = 100;
+UPDATE_RATE_PER_SECOND = 1000/UPDATE_RATE;
 
-
-clicks = 1000;
+clicks = 0;
 clickRate = 0;
 
 buildings.forEach(element => {
@@ -28,7 +29,7 @@ clickButton = document.getElementById('click');
 clickDisplayText = document.getElementById('clickTextDisplay');
 clickRateDisplayText = document.getElementById('clickRateTextDisplay');
 
-clickRateDisplayText.innerHTML = `${clickRate}/s`;
+clickRateDisplayText.innerHTML = `${clickRate*UPDATE_RATE_PER_SECOND}/s`;
 
 
 
@@ -78,11 +79,14 @@ function instantiateBuildingButtons(building) {
     tmpButton.onclick = function() {
         if(clicks >= building.cost) {
             building.owned++;
+            clicks -= building.cost;
             // tmpOwned.innerHTML = building.owned;
             document.getElementById(building.name).innerHTML = `Owned: ${building.owned}`;
             clickRate += building.clickAmount;
             console.table(buildings);
-            clickRateDisplayText.innerHTML = `${clickRate}/s`;
+            clickRateDisplayText.innerHTML = `${clickRate*UPDATE_RATE_PER_SECOND}/s`;
+            clickDisplayText.innerHTML = clicks;
+
 
         }
     }
@@ -101,7 +105,7 @@ function updateClicks() {
     });
 }
 
-window.setInterval(updateClicks, 100);
+window.setInterval(updateClicks, UPDATE_RATE);
 
 
 
