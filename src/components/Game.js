@@ -4,7 +4,8 @@ import BuildingCard from './BuildingCard';
 
 import styled from 'styled-components';
 
-const TICK_RATE = 1000/10;
+const TICK_RATE = 100;
+const chillTarget = 7000000000;
 
 const GameContainer = styled.div`
     font-size: 34px;
@@ -16,22 +17,6 @@ const GameContainer = styled.div`
     /* justify-content: center; */
 `;
 
-const CashTextDisplay = styled.h2`
-    color: green;
-`;
-
-const PositiveTextDisplay = styled.h3`
-    color: lightgreen;
-`;
-
-const NegativeTextDisplay = styled.h3`
-    color: red;
-`;
-
-const ChillCountDisplay = styled.h1`
-    color: blue;
-`;
-
 const buildingsList =[
     {
         name: 'Tea',
@@ -40,13 +25,13 @@ const buildingsList =[
         income: 1,
     },
     {
-        name: 'Coffee',
+        name: 'Beer',
         cost: 1000,
         owned: 0,
         income: 5,
     },
     {
-        name: 'Beer',
+        name: 'Weed',
         cost: 10000,
         owned: 0,
         income: 15,
@@ -58,7 +43,7 @@ const buildingsList =[
         income: 30,
     },
     {
-        name: 'Absinthe',
+        name: 'Cocktail',
         cost: 1000000,
         owned: 0,
         income: 60,
@@ -68,25 +53,28 @@ const buildingsList =[
 
 
 export default function Game() {
+
     const [positiveNum, setPositiveNum] = useState(1);
     const [negativeNum, setNegativeNum] = useState(0);
-    const [chillCount, setChillCount] = useState(1000);
-    const [cashNum, setCashNum] = useState(1000);
-    const [levelCompleted, setLevelCompleted] = useState(false);
+    const [chillCount, setChillCount] = useState(0);
+    const [cashNum, setCashNum] = useState(100000);
     const [buildingsState, setBuilding] = useState(buildingsList);
+    const [chillRate, setChillRate] = useState(1);
 
 
 
-    function updateChillCount() {
-        if(positiveNum > negativeNum && chillCount > 0) {
-            setChillCount((chillCount) => chillCount - 1);
-        } else if (chillCount === 0) {
-            setLevelCompleted(true);
-        }
+    const increaseChillRate = () => {
+        setChillRate((chillRate) => chillRate + 10);
+    };
+
+    const updateChillCount = () => {
+        console.log(chillRate);
+
+        setChillCount((chillCount) => chillCount + chillRate);
         
 
-        setTimeout(
-            updateChillCount, TICK_RATE);
+        // setTimeout(
+        //     updateChillCount, 1000);
     }
 
     function updateCashCount() {
@@ -100,8 +88,8 @@ export default function Game() {
         // console.log(cashIncrease);
         setCashNum((cashNum) => cashNum + cashIncrease);
 
-        setTimeout(
-            updateCashCount, TICK_RATE);
+        // setTimeout(
+        //     updateCashCount, TICK_RATE);
     }
 
 
@@ -141,36 +129,44 @@ export default function Game() {
     }
 
 
+    // start initial timer and retrigger when own state changes
     useEffect(() => {
+
         const interval = setTimeout(
-          updateChillCount, TICK_RATE);
-        const interval2 = setTimeout(
           updateCashCount, TICK_RATE);
 
-        // return () => clearInterval(interval);
-      }, []);
+        return () => clearInterval(interval);
+
+      }, [cashNum]);
+
+      useEffect(() => {
+        const interval = setTimeout(
+          updateChillCount, TICK_RATE);
+
+        return () => clearInterval(interval);
+
+      }, [chillCount]);
 
 
-    //   useEffect(() => {
-    //     const interval = setTimeout(
-    //       updateChillCount, 2000);
-    //     // return () => clearInterval(interval);
-    //   }, []);
+
 
     return(
         <GameContainer className="main">
-            {/* {levelCompleted ? <p>Level completed!</p> : ''} */}
             <div className="main-banner">
-                <span>Tot: {chillCount}</span>
-                <CashTextDisplay>Cash: {cashNum}</CashTextDisplay>
+                
             </div>
+            <h1 className="text-primary">Ca chill sec: {chillCount} / {chillTarget}</h1>
+            <h1 className="text-success">${cashNum}</h1>
+            <button className="btn btn-warning" onClick={increaseChillRate}>Increase chill rate from {chillRate} to {chillRate + 10}</button>
+            {/* {console.log(chillRate)} */}
             <div className="w-50">
-                <div>
+            
+                {/* <div>
                     <PositiveTextDisplay>Pos: {positiveNum}</PositiveTextDisplay>
                 </div>
                 <div>
                     <NegativeTextDisplay>Neg: {negativeNum}</NegativeTextDisplay>
-                </div>
+                </div> */}
                 {buildingsState.map((e, index) => (
 
                     <BuildingCard id={index} 
