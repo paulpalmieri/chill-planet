@@ -3,128 +3,148 @@ import React, { useState, useEffect, useReducer, useRef } from "react";
 import { Progress } from "semantic-ui-react";
 import { request } from "https";
 
-import { ProgressBar } from "react-bootstrap";
+import { CircularProgressbar,buildStyles  } from "react-circular-progressbar";
+import "react-circular-progressbar/dist/styles.css";
+
+import { Button, ProgressBar } from "react-bootstrap";
 
 const INITAL_CASH = 0;
 
-const buildingsList = [
-  {
-    name: "BUILDING 1",
-    cost: 100,
-    owned: 0,
-    income: 1
-  },
-  {
-    name: "Beer",
-    cost: 1000,
-    owned: 0,
-    income: 5
-  }
-];
-
 const initialBuildings = [
   {
-    name: "Lemon stand",
+    name: "misc 1",
     income: 5,
-    time: 5000,
+    time: 2500,
     last_clicked: null,
-    canStart: true
+    canStart: true,
+    time_left: null,
+    automated: false
   },
   {
-    name: "Car wash",
-    income: 10,
-    time: 9000,
+    name: "misc 2",
+    income: 20,
+    time: 5000,
     last_clicked: null,
-    canStart: true
+    canStart: true,
+    time_left: null,
+    automated: true
+  },
+  {
+    name: "misc 3",
+    income: 100,
+    time: 10000,
+    last_clicked: null,
+    canStart: true,
+    time_left: null,
+    automated: true
+  },
+  {
+    name: "misc 4",
+    income: 200,
+    time: 20000,
+    last_clicked: null,
+    canStart: true,
+    time_left: null,
+    automated: true
+  },
+  {
+    name: "misc 5",
+    income: 500,
+    time: 30000,
+    last_clicked: null,
+    canStart: true,
+    time_left: null,
+    automated: true
+  },
+  {
+    name: "misc 6",
+    income: 50000,
+    time: 60000,
+    last_clicked: null,
+    canStart: true,
+    time_left: null,
+    automated: true
   }
 ];
 
+const initProgressBarState = () => {};
+
 export default function GameV2() {
-  const [cashNum, setCashNum] = useState(INITAL_CASH);
-  const [progress1, setProgress1] = useState(0);
+  const [cash, setCash] = useState(INITAL_CASH);
   const [buildings, setBuildings] = useState(initialBuildings);
 
-  const [progressBars, setProgressBars] = useState([0, 0]);
-
-  const progressRef = useRef(null);
+  const [progressBars, setProgressBars] = useState(
+    new Array(buildings.length).fill(0)
+  );
 
   let counter = 0;
   let previous_timestamp = 0;
   let total_time = 0;
   let partial_ticks = 0;
-  let update_rate = 250;
-
-  // // receives a timestamp each call
-  // function updateProgress1(timestamp, threshold) {
-  //     console.log(timestamp);
-  //     let time_difference = previous_timestamp? timestamp - previous_timestamp : tick_duration;
-  //     previous_timestamp = timestamp;
-  //     total_time += time_difference;
-  //     partial_ticks += time_difference;
-  //     console.log(`Threshold: ${threshold}`)
-  //     // console.log(`Time difference: ${time_difference}`)
-  //     // console.log(`Partial ticks: ${partial_ticks}`)
-
-  //     if(partial_ticks > 100) {
-  //         // only set state every 100 ms
-  //         console.log('setting state');
-  //         setProgress1(progress1 => progress1 + (100 * partial_ticks / time_treshold));
-  //         partial_ticks = 0;
-  //     }
-
-  //     // setProgress1(100 * total_time / time_treshold);
-
-  //     // update based on timestamp
-
-  //     let test1 = requestAnimationFrame(updateProgress1);
-  //     if(total_time > time_treshold) {
-  //         setProgress1(100);
-
-  //         console.log(total_time);
-  //         cancelAnimationFrame(test1);
-
-  //         setTimeout(function() {
-  //             setProgress1(0);
-  //         }, 500);
-  //         // remove animation frame
-  //     }
-  // }
-
+  let update_rate = 20;
   let progressCopy = [0, 0];
+
   function gameLoop(timestamp) {
     let time_difference = timestamp - previous_timestamp;
     previous_timestamp = timestamp;
     total_time += time_difference;
     partial_ticks += time_difference;
 
-    buildings.forEach((e, index) => {
-      const difference = timestamp - e.last_clicked;
-      if (difference < e.time && !e.canStart) {
-        console.log(
-          `Should update ${e.name} because time diff ${difference} < ${e.time}`
-        );
-        progressCopy[index] = (difference * 100) / e.time;
-      } else if (difference > e.time && !e.canStart) {
-        console.log(
-          `Should not update building because time diff ${difference} > ${e.time} `
-        );
-        progressCopy[index] = 0;
-        let buildingsCopy = [...buildings];
-        buildingsCopy[index].canStart = true;    
-        setBuildings(buildingsCopy);
-      } 
-    });
+    if (partial_ticks > update_rate) {
+      buildings.forEach((e, index) => {
+        const difference = timestamp - e.last_clicked;
+        if (difference < e.time && !e.canStart) {
+          // console.log(
+          //   `Should update ${e.name} because time diff ${difference} < ${e.time}`
+          // );
+
+          console.log(`Updating to ${Math.ceil((difference * 100) / e.time)}`);
+          // console.log(`Diff: ${difference}, time: ${e.time} `);
+
+          progressCopy[index] = Math.ceil((difference * 100) / e.time);
+        } else if (difference > e.time && !e.canStart) {
+          // console.log(
+          //   `Should not update building because time diff ${difference} > ${e.time} `
+          // );
+
+          if (e.automated) {
+            progressCopy[index] = 0;
+            setCash(cash => cash + e.income);
+            let buildingsCopy = [...buildings];
+            buildingsCopy[index].last_clicked = performance.now();
+            buildingsCopy[index].canStart = false;
+            setBuildings(buildingsCopy);
+          } else {
+            console.log("resetting: " + e.name);
+            progressCopy[index] = 0;
+            let buildingsCopy = [...buildings];
+            buildingsCopy[index].canStart = true;
+            setBuildings(buildingsCopy);
+            setCash(cash => cash + e.income);
+          }
+        }
+      });
+    }
 
     // set state periodically
     if (partial_ticks > update_rate) {
-      console.log(
-        `😂😂😂😂😂😂😂 to ${progressCopy} because ${partial_ticks} > ${update_rate}`
-      );
-      
+      // console.log(
+      //   `😂😂😂😂😂😂😂 to ${progressCopy} because ${partial_ticks} > ${update_rate}`
+      // );
+      let buildingsCopy = [...buildings];
+      buildingsCopy.forEach((e, index) => {
+        if (!e.canStart) {
+          const difference = timestamp - e.last_clicked;
+          buildingsCopy[index].time_left = e.time - difference;
+        } else {
+          buildingsCopy[index].time_left = 0;
+        }
+      });
 
-
-
+      setBuildings(buildingsCopy);
+      console.log(`😂`);
       setProgressBars([...progressCopy]);
+      // resetProgress();
       partial_ticks = 0;
     } else {
       partial_ticks++;
@@ -136,116 +156,82 @@ export default function GameV2() {
     requestAnimationFrame(gameLoop);
   }
 
-  function getUpdateProgress(
-    id,
-    threshold,
-    update_rate,
-    previous_timestamp,
-    partial_ticks,
-    total_time
-  ) {
-    const updateProgress = timestamp => {
-      console.log(`------------------------`);
-      // console.log(`Initial TS: ${initial_timestamp}`)
-      console.log(`Timestamp since first raF: ${timestamp}`);
-
-      // console.log(`Time Threshold: ${threshold}`)
-      // console.log(`Update freq: ${update_rate}`)
-      let time_difference = timestamp - previous_timestamp;
-      console.log(`Time diff between f-calls: ${time_difference}`);
-      previous_timestamp = timestamp;
-      total_time += time_difference;
-
-      partial_ticks += time_difference;
-
-      if (partial_ticks > update_rate) {
-        // only set state every 100 ms
-        console.log(`OOOOOOOOOOOOO setting ticks ${partial_ticks}`);
-        let progressCopy = { ...progressBars };
-        progressCopy[id] = progressCopy[id] + (100 * partial_ticks) / threshold;
-        // setProgressBars(progressCopy);
-        console.log(progressRef);
-        // progressRef.curKC += (100 *  partial_ticks / threshold);
-        partial_ticks = 0;
+  function scaleSpeed() {
+    let buildingsCopy = [...buildings];
+    buildings.forEach((e, index) => {
+      if (e.time > 800) {
+        e.time -= 800;
+      } else if (e.time > 100) {
+        e.time -= 100;
       }
+    });
 
-      let anim = requestAnimationFrame(updateProgress);
-      if (total_time > threshold) {
-        // total_time = 0;
-        console.log(`Done. Time: ${total_time}`);
-        total_time = 0;
-        let progressCopy = { ...progressBars };
-        progressCopy[id] = 100;
-        setProgressBars(progressCopy);
-
-        cancelAnimationFrame(anim);
-        setTimeout(function() {
-          let progressCopy = { ...progressBars };
-          progressCopy[id] = 0;
-          setProgressBars(progressCopy);
-          console.log("reseting to 0");
-        }, 500);
-      }
-    };
-    return updateProgress;
+    setBuildings(buildingsCopy);
   }
 
-  function handleClick(id) {
-    // on progress bar click:
-    // start the progress bar, update value every 250ms to get some animation
-    // at the end, clear the bar.
-
+  // modify the building state to add a timestamp and remove the button temporarily
+  function handleProgressClick(id) {
     let buildingsCopy = [...buildings];
     buildingsCopy[id].canStart = false;
     buildingsCopy[id].last_clicked = performance.now();
-
     setBuildings(buildingsCopy);
-
-    // setProgressBars([30, 50])
-    // const initial_timestamp = performance.now();
-    // const updateFunc = getUpdateProgress(id, 5000, 1000, initial_timestamp, 0, 0);
-    // requestAnimationFrame(updateFunc);
   }
 
+  // start gameloop once at mount time
   useEffect(() => {
     console.log("Starting gameloop...");
     let anim = requestAnimationFrame(gameLoop);
-
     return () => cancelAnimationFrame(anim);
   }, []); // retrigger function call when the state value changes
 
   return (
-    <div>
+    <div className="container mt-4">
+      <span>Cash: {cash}</span>
+      <div className="all-progress-container">
       {buildings.map((e, index) => (
-        <div key={index}>
-          {/* <span>{e.name}</span> */}
-          <ProgressBar
+        <div key={index} className="progress-container m-2 w-25 h-25">
+          
+          <span>{Math.round(e.income / (e.time/1000)) }/s</span>
+          {/* <ProgressBar
+            className="m-2 w-100"
             now={progressBars[index]}
             animated
-            label={`Now: ${progressBars[index]}%`}
-          />
+            variant="success"
+            label={`${Math.ceil(e.time_left / 1000)}s`}
+          /> */}
+          <CircularProgressbar
+            className="w-100"
+            value={progressBars[index]}
+            text={`${Math.ceil(e.time_left / 1000)}s, ${Math.ceil(e.time_left*100 / e.time) == 0 ? 0 :  100 - Math.ceil(e.time_left*100 / e.time)}%`}
+            styles={buildStyles({
+              // Rotation of path and trail, in number of turns (0-1)
 
+              // Whether to use rounded or flat corners on the ends - can use 'butt' or 'round'
+
+              // Text size
+              textSize: "14px",
+
+              // How long animation takes to go from one percentage to another, in seconds
+              pathTransition: 'stroke-dashoffset 0.1s ease 0s',
+            })}
+          />
           {e.canStart ? (
-            <button onClick={() => handleClick(index)}>
-              Increment {e.name}
-            </button>
+            <Button
+              className="fade-in m-2"
+              onClick={() => handleProgressClick(index)}
+            >
+              ${e.income} in {e.time/1000}s
+            </Button>
           ) : (
             ""
           )}
-          <button onClick={() => handleClick(index)}>Increment {e.name}</button>
-          {/* <button onClick={() => handleClick(index)}>Increment {e.name}</button> */}
         </div>
       ))}
+      </div>
 
-      {/* <ProgressBar ref={progressRef} now={50} animated label={`Now: ${progress1}%`}/>
-        <ProgressBar  now={progressBars[0]} animated label={`Now: ${progressBars[0]}%`}/>
-        <ProgressBar  now={progressBars[1]} animated label={`Now: ${progressBars[1]}%`}/>
-
-
-        {/* <Progress percent={progress1} indicating /> */}
-      {/* <button onClick={handleClick}>Increment</button>
-        <button onClick={() => handleClick(0)}>Increment 0</button>
-        <button onClick={() => handleClick(1)}>Increment 1</button> */}
+      <button onClick={scaleSpeed}>Scale speed + </button>
     </div>
   );
 }
+
+
