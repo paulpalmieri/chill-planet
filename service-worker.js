@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/chill-planet/precache-manifest.2dd9d7d2940bc70750061fa1f679de68.js"
+  "/chill-planet/precache-manifest.fae01579740b953df16e1571a55e1169.js"
 );
 
 self.addEventListener('message', (event) => {

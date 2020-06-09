@@ -1,6 +1,6 @@
 {
   "files": {
-    "main.css": "/chill-planet/static/css/main.fac81d63.chunk.css",
+    "main.css": "/chill-planet/static/css/main.3a8d6ec2.chunk.css",
     "main.js": "/chill-planet/static/js/main.3340460d.chunk.js",
     "main.js.map": "/chill-planet/static/js/main.3340460d.chunk.js.map",
     "runtime-main.js": "/chill-planet/static/js/runtime-main.8b78f17b.js",
@@ -9,10 +9,10 @@
     "static/js/2.455dde7b.chunk.js": "/chill-planet/static/js/2.455dde7b.chunk.js",
     "static/js/2.455dde7b.chunk.js.map": "/chill-planet/static/js/2.455dde7b.chunk.js.map",
     "index.html": "/chill-planet/index.html",
-    "precache-manifest.2dd9d7d2940bc70750061fa1f679de68.js": "/chill-planet/precache-manifest.2dd9d7d2940bc70750061fa1f679de68.js",
+    "precache-manifest.fae01579740b953df16e1571a55e1169.js": "/chill-planet/precache-manifest.fae01579740b953df16e1571a55e1169.js",
     "service-worker.js": "/chill-planet/service-worker.js",
     "static/css/2.ad986fc4.chunk.css.map": "/chill-planet/static/css/2.ad986fc4.chunk.css.map",
-    "static/css/main.fac81d63.chunk.css.map": "/chill-planet/static/css/main.fac81d63.chunk.css.map",
+    "static/css/main.3a8d6ec2.chunk.css.map": "/chill-planet/static/css/main.3a8d6ec2.chunk.css.map",
     "static/js/2.455dde7b.chunk.js.LICENSE.txt": "/chill-planet/static/js/2.455dde7b.chunk.js.LICENSE.txt",
     "static/media/logo.svg": "/chill-planet/static/media/logo.5d5d9eef.svg"
   },
@@ -20,7 +20,7 @@
     "static/js/runtime-main.8b78f17b.js",
     "static/css/2.ad986fc4.chunk.css",
     "static/js/2.455dde7b.chunk.js",
-    "static/css/main.fac81d63.chunk.css",
+    "static/css/main.3a8d6ec2.chunk.css",
     "static/js/main.3340460d.chunk.js"
   ]
 }
