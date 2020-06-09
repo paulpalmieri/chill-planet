@@ -5,7 +5,7 @@ import workerRoutine from './worker.js';
 import WebWorker from './WebWorker';
 
 
-import BuildingCard from "./BuildingCard";
+import {BuildingCard} from "./BuildingCard";
 
 import styled from "styled-components";
 
@@ -46,6 +46,14 @@ const buildingsList = [
     income: 15
   },
 ];
+
+    var worker = new WebWorker(workerRoutine);
+    
+    // attach chill update logic to worker
+    // worker.addEventListener('message', event => {
+    //   // console.log(`Setting count from worker listener to ${event.data}`)
+    //   setChillCount(event.data);
+    // });
 
 export default function Game() {
   const [chillCount, setChillCount] = useState(INITAL_CHILL);
@@ -115,7 +123,11 @@ export default function Game() {
     setCashRate(cashIncrease);
   }
 
-  function handleBuyBuilding(id) {
+  async function handleBuyBuilding(id) {
+
+    // for(let i = 0; i < 1000; i++) {
+    //   console.log('test');
+    // }
     if (cashNum > buildingsState[id].cost) {
       console.log(`Buying 1 of building ${id}`);
       const buildingsCopy = [...buildingsState];
@@ -140,38 +152,35 @@ export default function Game() {
   //   updateBuildingPrice(0);
   // }, [buildingsOwned]); // retrigger function call when the state value changes
 
-  useEffect(() => {
-    const interval = setTimeout(updateCashCount, TICK_RATE);
-
-    return () => clearInterval(interval);
-  }, [cashNum]); // retrigger function call when the state value changes
-
-  useEffect(() => {
-    const interval = setTimeout(updateChillCount, TICK_RATE);
-
-    return () => clearInterval(interval);
-  }, [chillCount]); // retrigger function call when the state value changes
-  
-  
   // useEffect(() => {
-  
-  //   var worker = new WebWorker(workerRoutine);
-    
-  //   // attach chill update logic to worker
-  //   worker.addEventListener('message', event => {
-  //     // console.log(`Setting count from worker listener to ${event.data}`)
-  //     setChillCount(event.data);
-  //   });
-  //   // create a recursive postMessage call to the worker's code
-  //   setTimeout(() => worker.postMessage([chillCount, chillRate]), TICK_RATE);
+  //   const interval = setTimeout(updateCashCount, TICK_RATE);
 
-  //   // return function cleanup() {
-  //   //   // console.log('end of workers lifecycle')
-  //   //   worker.terminate()
-  //   // };
+  //   return () => clearInterval(interval);
+  // }, [cashNum]); // retrigger function call when the state value changes
 
-  //   return () => worker.terminate();
+  // useEffect(() => {
+  //   const interval = setTimeout(updateChillCount, TICK_RATE);
+
+  //   return () => clearInterval(interval);
   // }, [chillCount]); // retrigger function call when the state value changes
+  
+  
+  useEffect(() => {
+  
+    worker.addEventListener('message', event => {
+      // console.log(`Setting count from worker listener to ${event.data}`)
+      setChillCount(event.data);
+    });
+    // create a recursive postMessage call to the worker's code
+    setTimeout(() => worker.postMessage([chillCount, chillRate]), TICK_RATE);
+
+    // return function cleanup() {
+    //   // console.log('end of workers lifecycle')
+    //   worker.terminate()
+    // };
+
+    // return () => worker.terminate();
+  }, [chillCount, chillRate]); // retrigger function call when the state value changes
 
 
   return (
@@ -186,9 +195,13 @@ export default function Game() {
       <button className="btn btn-warning m-2" onClick={decreaseChillRate}>
         -0.1 chill rate
       </button>
+
       <div className="d-flex flex-column">
-        {buildingsState.map((e, index) => (
-          <BuildingCard
+        {buildingsState.map((e, index) => {
+          console.log('Re-render buildingsState map')
+          return(
+            <BuildingCard
+            key={index}
             id={index}
             name={e.name}
             owned={e.owned}
@@ -201,8 +214,34 @@ export default function Game() {
             price_10={e.cost_10}
             price_100={e.cost_100}
           ></BuildingCard>
-        ))}
+          );
+      
+
+        })}
       </div>
+      {/* <div className="d-flex flex-column">
+        {buildingsState.map((e, index) => (
+          
+          <div key={index}>
+          {          console.log('rendering buildings')       }
+          <BuildingCard
+            // key={index}
+            // id={index}
+            // name={e.name}
+            // owned={e.owned}
+            // cost={e.cost}
+            // buyBuilding={handleBuyBuilding}
+            // warning_1={!(cashNum > e.cost)}
+            // warning_10={!(cashNum > e.cost_10)}
+            // warning_100={!(cashNum > e.cost_100)}
+            // price_1={e.cost}
+            // price_10={e.cost_10}
+            // price_100={e.cost_100}
+          ></BuildingCard>
+          </div>
+
+        ))}
+      </div> */}
     </GameContainer>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useReducer } from "react";
 
-export default function BuildingCard(props) {
+export const BuildingCard = React.memo((props) => {
+  console.log('Rendering Building cards');
   return (
     <div className=" p-2 mt-2 border rounded" key={props.id}>
       <h5 className="text-primary">{props.name} </h5>
@@ -29,5 +30,7 @@ export default function BuildingCard(props) {
 
       {/* {console.log(`Rendering building ${props.id}`)} */}
     </div>
-  );
-}
+  )
+});
+
+// export const MemoBuildingCard = React.memo(BuildingCard);
