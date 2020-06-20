@@ -1,12 +1,11 @@
 import React from 'react';
 import logo from './logo.svg';
-import './App.css';
 // import Game from './components/Game';
-import GameV2 from './components/GameV2';
+import GameV3 from './components/GameV3';
 
 function App() {
   return (
-    <GameV2></GameV2>
+    <GameV3></GameV3>
   );
 }
 
