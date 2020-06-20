@@ -1,95 +1,120 @@
-import React, { useState, useEffect, useReducer, useRef } from "react";
+import React, { useState, useEffect } from "react";
 
-import { Progress } from "semantic-ui-react";
-import { request } from "https";
+import { resources } from "./data/all";
 
-import { CircularProgressbar,buildStyles  } from "react-circular-progressbar";
-import "react-circular-progressbar/dist/styles.css";
+import ResourceContainer from "./ResourceContainer";
+import styled from "styled-components";
+import { Button } from "react-bootstrap";
 
-import { Button, ProgressBar } from "react-bootstrap";
+const MainContainer = styled.div`
+  font-family: "Poppins";
+  display: flex;
+  flex-direction: column;
+  /* justify-content: center; */
+  align-items: center;
+  width: 100%;
+`;
+const TopContainer = styled.div`
+  height: 200px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 32px;
+  color: #00bd35;
+  /* margin-bottom: 100px; */
+`;
 
+const MiddleContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  /* align-content: center; */
+  justify-content: center;
+  width: 100%;
+`;
+
+const ResourcesContainer = styled.div`
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 48%;
+`;
+
+const UpgradesContainer = styled.div`
+  border: 1px solid lightgrey;
+  width: 24%;
+  margin: 0;
+`;
+const MarketContainer = styled.div`
+  border: 1px solid lightgrey;
+  width: 24%;
+  margin: 0;
+`;
+
+const BottomContainer = styled.div`
+  height: 80px;
+`;
 const INITAL_CASH = 0;
 
-const initialBuildings = [
+const upgradesInitial = [
   {
-    name: "misc 1",
-    income: 5,
-    time: 2500,
-    last_clicked: null,
-    canStart: true,
-    time_left: null,
-    automated: false
+    name: "Wood automation",
+    description: "Automates wood collecting",
+    cost: 50,
+    action: function() {
+      console.log(' Bought')
+    }
   },
   {
-    name: "misc 2",
-    income: 20,
-    time: 5000,
-    last_clicked: null,
-    canStart: true,
-    time_left: null,
-    automated: true
+    name: "Wood automation",
+    description: "Automates wood collecting",
+    cost: 50,
+    action: function() {
+      console.log(' Bought')
+    }
   },
-  {
-    name: "misc 3",
-    income: 100,
-    time: 10000,
-    last_clicked: null,
-    canStart: true,
-    time_left: null,
-    automated: true
-  },
-  {
-    name: "misc 4",
-    income: 200,
-    time: 20000,
-    last_clicked: null,
-    canStart: true,
-    time_left: null,
-    automated: true
-  },
-  {
-    name: "misc 5",
-    income: 500,
-    time: 30000,
-    last_clicked: null,
-    canStart: true,
-    time_left: null,
-    automated: true
-  },
-  {
-    name: "misc 6",
-    income: 50000,
-    time: 60000,
-    last_clicked: null,
-    canStart: true,
-    time_left: null,
-    automated: true
-  }
 ];
-
-const initProgressBarState = () => {};
 
 export default function GameV2() {
   const [cash, setCash] = useState(INITAL_CASH);
-  const [buildings, setBuildings] = useState(initialBuildings);
+  // RESOURCES
+  const [buildings, setBuildings] = useState(resources);
+  // UPGRADES
+  const [upgrades, setUpgrades] = useState([{
+    name: "Wood automation",
+    description: "Automates wood collecting",
+    cost: 50,
+    action: function(id) {
+      automate_resource(id);
+    }
+  },
+  {
+    name: "Gold automation",
+    description: "Automates gold collecting",
+    cost: 250,
+    action: function(id) {
+      automate_resource(id);
+    }
+  }]);
 
+  // init a 0 filled array to store progress bar values
   const [progressBars, setProgressBars] = useState(
     new Array(buildings.length).fill(0)
   );
 
-  let counter = 0;
+  
+
   let previous_timestamp = 0;
-  let total_time = 0;
   let partial_ticks = 0;
-  let update_rate = 20;
+  let update_rate = 1000 / 30;
   let progressCopy = [0, 0];
 
   function gameLoop(timestamp) {
     let time_difference = timestamp - previous_timestamp;
     previous_timestamp = timestamp;
-    total_time += time_difference;
     partial_ticks += time_difference;
 
+    // periodically compute state changes/progress
     if (partial_ticks > update_rate) {
       buildings.forEach((e, index) => {
         const difference = timestamp - e.last_clicked;
@@ -107,30 +132,23 @@ export default function GameV2() {
           //   `Should not update building because time diff ${difference} > ${e.time} `
           // );
 
+          let buildingsCopy = [...buildings];
+          setCash(cash => cash + e.income);
+          progressCopy[index] = 0;
+
           if (e.automated) {
-            progressCopy[index] = 0;
-            setCash(cash => cash + e.income);
-            let buildingsCopy = [...buildings];
             buildingsCopy[index].last_clicked = performance.now();
             buildingsCopy[index].canStart = false;
-            setBuildings(buildingsCopy);
           } else {
-            console.log("resetting: " + e.name);
-            progressCopy[index] = 0;
-            let buildingsCopy = [...buildings];
             buildingsCopy[index].canStart = true;
-            setBuildings(buildingsCopy);
-            setCash(cash => cash + e.income);
           }
+          setBuildings(buildingsCopy);
         }
       });
     }
 
-    // set state periodically
+    // Periodically set state
     if (partial_ticks > update_rate) {
-      // console.log(
-      //   `😂😂😂😂😂😂😂 to ${progressCopy} because ${partial_ticks} > ${update_rate}`
-      // );
       let buildingsCopy = [...buildings];
       buildingsCopy.forEach((e, index) => {
         if (!e.canStart) {
@@ -145,18 +163,16 @@ export default function GameV2() {
       console.log(`😂`);
       setProgressBars([...progressCopy]);
       // resetProgress();
-      partial_ticks = 0;
+      partial_ticks -= update_rate;
     } else {
       partial_ticks++;
     }
 
-    counter += 1;
-
-    // let anim = requestAnimationFrame(gameLoop);
     requestAnimationFrame(gameLoop);
   }
 
-  function scaleSpeed() {
+  // debug button to scale the speed of all buildings
+  function scaleSpeedUp() {
     let buildingsCopy = [...buildings];
     buildings.forEach((e, index) => {
       if (e.time > 800) {
@@ -168,13 +184,50 @@ export default function GameV2() {
 
     setBuildings(buildingsCopy);
   }
+  // debug button to scale the speed of all buildings
+  function scaleSpeedDown() {
+    let buildingsCopy = [...buildings];
+    buildings.forEach((e, index) => {
+      if (e.time < 1000) {
+        e.time += 1000;
+      } else {
+        e.time += 500;
+      }
+    });
 
-  // modify the building state to add a timestamp and remove the button temporarily
+    setBuildings(buildingsCopy);
+  }
+
+  function setSpeed(value) {
+    let buildingsCopy = [...buildings];
+    buildings.forEach((e, index) => {
+      e.time = value;
+    });
+
+    setBuildings(buildingsCopy);
+  }
+
+  // modify the building state to add a timestamp and remove the button temporarily (for ever if automated)
   function handleProgressClick(id) {
+    console.log("Progress clicking for ID:", id);
     let buildingsCopy = [...buildings];
     buildingsCopy[id].canStart = false;
     buildingsCopy[id].last_clicked = performance.now();
     setBuildings(buildingsCopy);
+  }
+
+  function automate_resource(id) {
+    let buildingsCopy = [...buildings];
+    buildingsCopy[id].canStart = false;
+    buildingsCopy[id].automated = true;
+    setBuildings(buildingsCopy);
+  }
+
+  function buy_upgrade(index) {
+    // modify upgrade state to buy upgrade and execute function
+    let upgradesCopy = [...upgrades];
+    console.log(upgradesCopy[index]);
+    upgradesCopy[index].action(index); // here it is automate_resource also defined 
   }
 
   // start gameloop once at mount time
@@ -182,56 +235,47 @@ export default function GameV2() {
     console.log("Starting gameloop...");
     let anim = requestAnimationFrame(gameLoop);
     return () => cancelAnimationFrame(anim);
-  }, []); // retrigger function call when the state value changes
+  }, []); // don't listen to state changes
 
   return (
-    <div className="container mt-4">
-      <span>Cash: {cash}</span>
-      <div className="all-progress-container">
-      {buildings.map((e, index) => (
-        <div key={index} className="progress-container m-2 w-25 h-25">
-          
-          <span>{Math.round(e.income / (e.time/1000)) }/s</span>
-          {/* <ProgressBar
-            className="m-2 w-100"
-            now={progressBars[index]}
-            animated
-            variant="success"
-            label={`${Math.ceil(e.time_left / 1000)}s`}
-          /> */}
-          <CircularProgressbar
-            className="w-100"
-            value={progressBars[index]}
-            text={`${Math.ceil(e.time_left / 1000)}s, ${Math.ceil(e.time_left*100 / e.time) == 0 ? 0 :  100 - Math.ceil(e.time_left*100 / e.time)}%`}
-            styles={buildStyles({
-              // Rotation of path and trail, in number of turns (0-1)
-
-              // Whether to use rounded or flat corners on the ends - can use 'butt' or 'round'
-
-              // Text size
-              textSize: "14px",
-
-              // How long animation takes to go from one percentage to another, in seconds
-              pathTransition: 'stroke-dashoffset 0.1s ease 0s',
-            })}
-          />
-          {e.canStart ? (
-            <Button
-              className="fade-in m-2"
-              onClick={() => handleProgressClick(index)}
-            >
-              ${e.income} in {e.time/1000}s
-            </Button>
-          ) : (
-            ""
-          )}
-        </div>
-      ))}
-      </div>
-
-      <button onClick={scaleSpeed}>Scale speed + </button>
-    </div>
+    <MainContainer>
+      <TopContainer>
+        <span>${cash}</span>
+      </TopContainer>
+      <MiddleContainer>
+        <UpgradesContainer>{upgrades.map((e, index) => (
+            <Button onClick={() => buy_upgrade(index)}>{e.name}</Button>
+          ))}</UpgradesContainer>
+        <ResourcesContainer>
+          {buildings.map((e, index) => (
+            <ResourceContainer
+              id={index}
+              name={e.name}
+              value={progressBars[index]}
+              time_left={e.time_left}
+              time={e.time}
+              can_start={e.canStart}
+              income={e.income}
+              handleClick={handleProgressClick}
+              icon={e.icon}
+              color={e.color}
+              automated={e.automated}
+            ></ResourceContainer>
+          ))}
+        </ResourcesContainer>
+        <MarketContainer>Market</MarketContainer>
+      </MiddleContainer>
+      <BottomContainer>
+        <Button className="w-25" onClick={scaleSpeedUp}>
+          Scale speed +{" "}
+        </Button>
+        <Button className="w-25" onClick={scaleSpeedDown}>
+          Scale speed -{" "}
+        </Button>
+        <Button className="w-25" onClick={() => setSpeed(1000)}>
+          Scale speed to 1000{" "}
+        </Button>
+      </BottomContainer>
+    </MainContainer>
   );
 }
-
-
