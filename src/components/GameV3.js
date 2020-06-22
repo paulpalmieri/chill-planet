@@ -5,8 +5,10 @@ import _ from "lodash";
 import ProgressBar from "./ProgressBar";
 import { motion, AnimatePresence } from "framer-motion";
 
-import node_iron_png from "../assets/NODE_IRON.png";
-import node_gold_png from "../assets/NODE_GOLD.png";
+import node_iron_png from "../assets/ores/NODE_IRON.png";
+import node_gold_png from "../assets/ores/NODE_GOLD.png";
+
+import CurrencyDisplay from "../components/CurrencyDisplay"
 
 import styled from "styled-components";
 
@@ -15,17 +17,23 @@ const variants = {
   hidden: { opacity: 0 }
 };
 
+const SpawnButton = styled.button`
+  margin: 10px;
+
+`;
+
 const MainContainer = styled.div`
   display: flex;
   /* width: 50%; */
   align-items: center;
   flex-direction: column;
-  /* justify-content: center; */
+  justify-content: center;
 `;
 
 const CashDisplay = styled.div`
   color: #55ce7e;
   font-size: 18px;
+  margin: 10px;
 `;
 
 const ContainerFlex = styled.div`
@@ -34,6 +42,7 @@ const ContainerFlex = styled.div`
   width: 100%;
   padding: 12px;
   margin: 4px;
+  justify-content: center;
   align-items: center;
   background-color: #f8f8f8;
 `;
@@ -68,70 +77,53 @@ const ImageContainer = styled.img`
 
 const NODE_TYPES = {
   IRON: {
+    type: "IRON",
     name: "Iron ore",
     png: node_iron_png,
-    completetime: 3 * 1000,
-    lifespan: 2,
-    yield: 1,
-    color: "#80778E"
+    completetime: 4 * 1000,
+    lifespan: 25,
+    yield: 5,
+    color: "#80778E",
+    owned: 0
   },
   GOLD: {
+    type: "GOLD",
     name: "Gold ore",
     png: node_gold_png,
-    completetime: 5000,
-    lifespan: 3,
-    yield: 1,
-    color: "#E19055"
+    completetime: 5 * 1000,
+    lifespan: 35,
+    yield: 5,
+    color: "#E19055",
+    owned: 0
   }
 };
 
-const initialNodes = [
-  {
-    name: "Iron ore",
-    png: node_iron_png,
-    completetime: 6 * 1000,
-    lifespan: 100,
-    yield: 1,
-    workers: 1,
-    remaining: 100,
-    progress: 0,
-    last_tick: performance.now(),
-    isVisible: true
-  },
-  {
-    name: "Iron ore",
-    png: node_iron_png,
-    completetime: 8 * 1000,
-    lifespan: 100,
-    yield: 1,
-    workers: 1,
-    remaining: 100,
-    progress: 0,
-    last_tick: performance.now(),
-    isVisible: true
-  }
-];
+
 
 export default function GameV3() {
   const [money, setMoney] = useState(1000);
+  const [ores, setOres] = useState(NODE_TYPES);
   const [previous_timestamp, setPrevioustimstamp] = useState(0);
   const [partial_ticks, setPartialticks] = useState(0);
 
   let gameloop = React.useRef();
   const [nodes, setNodes] = useState([]);
-  const [emptyNodes, setEmptyNodes] = useState([]);
+  const [emptyNodes, setEmptyNodes] = useState();
+  const [time, setTime] = React.useState(Date.now());
 
-  useEffect(() => {
-    console.log("Starting gameloop...");
-    // console.log(nodes);
+  // useEffect(() => {
+  //   console.log("Starting gameloop...");
+  //   // console.log(nodes);
 
-    let anim = requestAnimationFrame(gameloop.current);
-    console.log("Animation loop");
-  }, []); // retrigger function call when the state value changes
+  //   let anim = requestAnimationFrame(gameloop.current);
+  //   console.log("Animation loop");
+  // }, []); // retrigger function call when the state value changes
 
   // let previous_timestamp;
   // let partial_ticks = 0;
-  const update_rate = 150;
+  const update_rate = 250;
+
+  let total = 0;
 
   gameloop.current = function(timestamp) {
     console.log(`Timestamp: ${timestamp}`);
@@ -149,11 +141,11 @@ export default function GameV3() {
       console.log(
         `Entering condition with ptick: ${partial_ticks} and ${update_rate}`
       );
-      // const nodesCopy = [...nodes];
-      // console.log(nodesCopy);
-      const nodesCopy = _.cloneDeep(
-        _.orderBy(nodes, o => o.remaining, ["desc"])
-      );
+
+      // const nodesCopy = _.cloneDeep(
+      //   _.orderBy(nodes, o => o.remaining, ["desc"])
+      // );
+      const nodesCopy = _.cloneDeep(nodes);
 
       nodesCopy.forEach((n, index) => {
         const difference = timestamp - n.last_tick;
@@ -168,6 +160,12 @@ export default function GameV3() {
           // yield
           console.log(`Node ${index} done.`);
           n.remaining -= n.yield;
+
+          let oresCopy = _.cloneDeep(ores);
+          oresCopy[n.type].owned += n.yield;
+
+          setOres(oresCopy);
+          
 
           // const OrderedCopy = _.orderBy(nodesCopy, o => o.remaining, ['desc']);
 
@@ -191,13 +189,14 @@ export default function GameV3() {
 
       console.log(`Partial ticks after end of tick: ${partial_ticks}`);
       // console.log(partial_ticks);
+      setNodes(nodesCopy => [...nodesCopy]);
     }
 
-    setNodes(nodesCopy => [...nodesCopy]);
 
     // console.log(`Money inside gameloop: ${money}`);
 
-    requestAnimationFrame(gameloop.current);
+    // setTimeout(gameloop.current, 1000);
+    // requestAnimationFrame(gameloop.current);
   };
 
   function spawnNode() {
@@ -216,51 +215,58 @@ export default function GameV3() {
     console.log(`Spawned new node`);
   }
 
+  // set up game loop
+  React.useEffect(() => {
+    const timer = window.setInterval(() => {
+      setTime(Date.now());
+    }, 250);
+    return () => {
+      window.clearInterval(timer);
+    };
+  }, []);
+
+  useEffect(() => {
+    // const delta = (1000 - (Date.now() - time)) / 1000;
+    const delta = performance.now();
+    gameloop.current(delta);
+  }, [time]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // requestAnimationFrame(gameLoop);
   return (
     <MainContainer>
       <CashDisplay>$ {money}</CashDisplay>
 
-      <button onClick={spawnNode}>Spawn</button>
+      <CurrencyDisplay png={NODE_TYPES.IRON.png} owned={ores.IRON.owned}> </CurrencyDisplay>
+      <CurrencyDisplay png={NODE_TYPES.GOLD.png} owned={ores.GOLD.owned}> </CurrencyDisplay>
+      {/* <img height={16} src={NODE_TYPES.IRON.png}></img>
 
-      <AnimatePresence>
-        {nodes.map((n, i) => (
+      <div>{ores.IRON.owned}</div>
+      <img height={16} src={NODE_TYPES.GOLD.png}></img>
+
+      <div>{ores.GOLD.owned}</div> */}
+      <SpawnButton onClick={spawnNode}>Spawn</SpawnButton>
+
+        <AnimatePresence>
+          {nodes.map((n, i) => (
             <motion.div
               key={i}
               initial={{
                 opacity: 0.5,
                 x: -50
               }}
-              transition={{ duration: 1 }}
+              // transition={{ duration: 1 }}
+              // positionTransition={spring}
               animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 50 }}
+              exit={{ opacity: 0 }}
             >
               <NodeContainer index={i} node={n}></NodeContainer>
             </motion.div>
-
-          // <motion.div key={index} initial={{
-          //   opacity: 0
-          // }}
-          // transition={{ duration: 2 }}
-          // animate={node.isVisible ? "visible" : "hidden"} variants={variants} exit={{opacity: 0}}>
-          //   <div>Name: {node.name} </div>
-          //   <div>Workers: {node.workers} </div>
-          //   <div>Lifespan: {node.lifespan} </div>
-          //   <div>Remaining: {node.remaining} </div>
-          //   <div>Yield: {node.yield} </div>
-
-          //   <img height={32} src={node.png}></img>
-          //   <ProgressBar
-          //     key={index}
-          //     bgcolor="#6a1b9a"
-          //     completed={Math.ceil(node.progress)}
-          //     ></ProgressBar>
-          // </motion.div>
-        ))}
-      </AnimatePresence>
+          ))}
+        </AnimatePresence>
     </MainContainer>
   );
 }
+
 
 const NodeTitle = styled.div`
   color: ${props => props.color};
@@ -269,7 +275,7 @@ const NodeTitle = styled.div`
 const NodeContainer = props => {
   return (
     <ContainerFlex>
-      <ImageContainer height={64} src={props.node.png}></ImageContainer>
+      <ImageContainer height={40} src={props.node.png}></ImageContainer>
 
       <InfoContainer>
         <NodeTitle color={props.node.color}>{props.node.name} </NodeTitle>
@@ -301,3 +307,4 @@ const NodeContainer = props => {
     </ContainerFlex>
   );
 };
+
