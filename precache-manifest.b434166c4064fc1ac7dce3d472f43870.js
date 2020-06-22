@@ -1,27 +1,27 @@
 self.__precacheManifest = (self.__precacheManifest || []).concat([
   {
-    "revision": "bb8637350e3f5291c2c35fbc3867dc9e",
+    "revision": "23898d846fa65decf00fb78761fdd28b",
     "url": "/chill-planet/index.html"
   },
   {
-    "revision": "383b2174c7825ac5bfbf",
+    "revision": "356c5e9779f7b4e0d962",
     "url": "/chill-planet/static/css/2.829c9cb5.chunk.css"
   },
   {
-    "revision": "59ef6c9ba448330f995c",
+    "revision": "62631183a1e9bea44f83",
     "url": "/chill-planet/static/css/main.5ecd60fb.chunk.css"
   },
   {
-    "revision": "383b2174c7825ac5bfbf",
-    "url": "/chill-planet/static/js/2.fca86f53.chunk.js"
+    "revision": "356c5e9779f7b4e0d962",
+    "url": "/chill-planet/static/js/2.15ab11d0.chunk.js"
   },
   {
     "revision": "3e6933cf6bd44f8f91c7aa725d75c668",
-    "url": "/chill-planet/static/js/2.fca86f53.chunk.js.LICENSE.txt"
+    "url": "/chill-planet/static/js/2.15ab11d0.chunk.js.LICENSE.txt"
   },
   {
-    "revision": "59ef6c9ba448330f995c",
-    "url": "/chill-planet/static/js/main.9ccc5eca.chunk.js"
+    "revision": "62631183a1e9bea44f83",
+    "url": "/chill-planet/static/js/main.d788f0aa.chunk.js"
   },
   {
     "revision": "bb97c591c14c09dc31ce",
